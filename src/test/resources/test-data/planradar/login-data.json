@@ -1,0 +1,7 @@
+{
+  "admin": {
+    "description": "Administrator of the PlanRadar demo tenant, used by every test. Never store real values here: blank fields fall back to PLANRADAR_EMAIL / PLANRADAR_PASSWORD (-D, environment variable or config/credentials.local.properties); -Ddata.planradar.login-data.admin.email / .password override per run.",
+    "email": "",
+    "password": ""
+  }
+}

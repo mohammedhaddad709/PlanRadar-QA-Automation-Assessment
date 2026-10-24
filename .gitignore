@@ -1,0 +1,19 @@
+# Build and run output
+target/
+test-output/
+allure-report/
+.allure/
+
+# Test dashboard (runner/server.py): run history, build snapshots, instance lock
+runner/runs/
+runner/.build/
+runner/.runner.lock
+__pycache__/
+
+# Local credentials / IDE (never commit)
+config/credentials.local.properties
+*.local.properties
+.env
+.idea/
+.vscode/
+*.iml

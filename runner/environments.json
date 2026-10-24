@@ -1,0 +1,18 @@
+{
+  "systems": {
+    "planradar": {
+      "activeSystem": "planradar",
+      "urls": [
+        {"label": "Web URL", "targets": ["planradar.baseUrl"], "requireHttps": true}
+      ],
+      "envs": {
+        "demo": {"Web URL": "https://www.planradar.com"},
+        "other": {"Web URL": ""}
+      },
+      "logins": [
+        {"label": "Admin email", "key": "data.planradar.login-data.admin.email", "env": "PLANRADAR_EMAIL", "default": ""},
+        {"label": "Admin password", "key": "data.planradar.login-data.admin.password", "env": "PLANRADAR_PASSWORD", "default": "", "secret": true}
+      ]
+    }
+  }
+}

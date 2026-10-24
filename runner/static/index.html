@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlanRadar Form Builder – Test Dashboard</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg:#f3f5f9; --card:#fff; --line:#e1e5ec; --text:#1b2430; --muted:#6a7686; --brand:#0b2545; --accent:#1565d8;
+    --pass:#16a34a; --fail:#dc2626; --block:#d97706; --skip:#8b95a5; --run:#1565d8; --radius:10px;
+    --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif; background:var(--bg); color:var(--text); }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  header { display:flex; flex-wrap:wrap; align-items:center; gap:12px 20px; padding:14px 24px; background:var(--brand); color:#fff; }
+  header .logo { width:34px; height:34px; border-radius:8px; background:#fff; color:var(--brand); display:grid; place-items:center; font-weight:800; }
+  header h1 { margin:0; font-size:18px; font-weight:600; } header .sub { font-size:12px; color:#a9bcd6; }
+  header .right { margin-left:auto; display:flex; gap:14px; align-items:center; font-size:13px; color:#c9d6e8; flex-wrap:wrap; }
+  header .right a { color:#c9d6e8; }
+  .wrap { max-width:1440px; margin:0 auto; padding:20px 24px 40px; }
+  .cards { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px; margin-bottom:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px; }
+  .card h2 { margin:0 0 12px; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .stat { font-size:28px; font-weight:700; line-height:1.1; } .stat small { font-size:13px; font-weight:500; color:var(--muted); }
+  .grid { display:grid; grid-template-columns:360px minmax(0,1fr); gap:20px; align-items:start; }
+  label { display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 5px; }
+  select, input[type=number] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:7px; font:inherit; background:#fff; color:var(--text); }
+  select:focus, input:focus, button:focus-visible { outline:2px solid #9cc0f5; outline-offset:1px; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button { flex:1; border:0; border-radius:0; background:#fff; color:var(--text); padding:8px 6px; font-weight:600; }
+  .seg button + button { border-left:1px solid var(--line); }
+  .seg button.on { background:var(--accent); color:#fff; }
+  .hint { font-size:12px; color:var(--muted); margin-top:6px; min-height:18px; }
+  .check { display:flex; gap:8px; align-items:center; font-size:13px; color:var(--text); font-weight:500; margin-top:10px; }
+  .demo { border:1px dashed #b9c8de; border-radius:8px; padding:2px 12px 12px; margin-top:14px; background:#f8fbff; }
+  button { padding:8px 16px; border-radius:7px; border:1px solid var(--accent); background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  button.ghost { background:#fff; color:var(--accent); } button.danger { background:#fff; color:var(--fail); border-color:#f1b4b4; }
+  button.small { padding:3px 10px; font-size:12px; } button:disabled { opacity:.5; cursor:not-allowed; }
+  .primary { width:100%; margin-top:18px; padding:11px; font-size:15px; }
+  .note { font-size:12px; padding:8px 10px; border-radius:7px; background:#f1f5fb; color:var(--muted); margin-top:12px; }
+  .note.warn { background:#fff6e5; color:#8a5a00; }
+  .badge { display:inline-flex; align-items:center; gap:5px; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; color:#fff; background:var(--skip); text-transform:capitalize; white-space:nowrap; }
+  .b-passed { background:var(--pass); } .b-failed,.b-error { background:var(--fail); } .b-blocked { background:var(--block); }
+  .b-running,.b-queued,.b-stopping { background:var(--run); } .b-stopped,.b-interrupted,.b-skipped { background:#6b7280; }
+  .b-pending,.b-not { background:#e5e9f0; color:#5b6576; }
+  .b-running::before,.b-stopping::before { content:""; width:7px; height:7px; border-radius:50%; background:#fff; animation:pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity:.25; } }
+  .runhead { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; }
+  .runhead .title { font-size:16px; font-weight:600; } .runhead .actions { margin-left:auto; display:flex; gap:8px; }
+  .meta { display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--muted); margin:10px 0 4px; } .meta b { color:var(--text); font-weight:600; }
+  .bar { height:10px; background:#e9edf3; border-radius:6px; overflow:hidden; display:flex; margin:12px 0; }
+  .bar span { height:100%; transition:width .3s; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th { font-size:12px; color:var(--muted); font-weight:600; background:#fafbfd; position:sticky; top:0; }
+  tr.click { cursor:pointer; } tr.click:hover td { background:#f5f8fd; } tr.sel td { background:#eaf2ff; }
+  .mono { font-family:"Cascadia Mono", Consolas, ui-monospace, monospace; font-size:12px; }
+  .muted { color:var(--muted); } .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .tc { font-weight:700; white-space:nowrap; }
+  .logbar { display:flex; align-items:center; gap:12px; margin:16px 0 6px; font-size:12px; color:var(--muted); }
+  .logbar .check { margin:0 0 0 auto; font-size:12px; }
+  pre.log { margin:0; background:#0d1520; color:#d3dbe6; border-radius:8px; padding:12px; height:340px; overflow:auto; font:12px/1.45 "Cascadia Mono", Consolas, monospace; white-space:pre-wrap; word-break:break-word; }
+  pre.log .e { color:#ff8a8a; } pre.log .p { color:#7ee2a8; } pre.log .w { color:#ffd27a; }
+  .links { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .links a, .links button { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid var(--line); border-radius:7px; background:#fff; color:var(--text); font-size:13px; font-weight:600; }
+  .links a:hover, .links button:hover { border-color:var(--accent); color:var(--accent); text-decoration:none; }
+  .failure { border-left:3px solid var(--fail); background:#fff7f7; padding:8px 12px; margin:10px 0; border-radius:0 6px 6px 0; font-size:13px; }
+  .failure.blocked { border-color:var(--block); background:#fffaf0; }
+  .failure pre { white-space:pre-wrap; font-size:11px; margin:6px 0 0; max-height:150px; overflow:auto; }
+  .empty { padding:30px; text-align:center; color:var(--muted); }
+  .history { max-height:460px; overflow:auto; }
+  .trend { display:flex; align-items:flex-end; gap:3px; height:54px; }
+  .trend a { flex:1; max-width:22px; display:flex; flex-direction:column-reverse; height:100%; border-radius:3px; overflow:hidden; background:#eef1f6; }
+  .trend span { display:block; }
+  dialog { border:0; border-radius:12px; padding:0; width:min(1100px, 94vw); max-height:88vh; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+  dialog::backdrop { background:rgba(11,37,69,.45); }
+  dialog header { padding:12px 18px; } dialog header h3 { margin:0; font-size:15px; }
+  dialog .body { padding:18px 22px; overflow:auto; max-height:calc(88vh - 60px); }
+  .md table { margin:10px 0; } .md td, .md th { border:1px solid var(--line); } .md h1 { font-size:20px; } .md h2 { font-size:16px; margin-top:22px; }
+  .md code { background:#f1f4f8; padding:1px 5px; border-radius:4px; font-size:12px; }
+  .gallery { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px; }
+  .gallery a { display:block; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; color:var(--text); }
+  .gallery img { width:100%; aspect-ratio:16/10; object-fit:cover; object-position:top; display:block; background:#eef1f6; }
+  .gallery span { display:block; padding:6px 8px; font-size:12px; word-break:break-all; }
+  #toast { position:fixed; right:20px; bottom:20px; max-width:440px; padding:12px 16px; border-radius:8px; color:#fff; background:#1f2937; box-shadow:var(--shadow); display:none; z-index:10; }
+  #toast.err { background:#b91c1c; }
+  @media (max-width:1100px) { .grid { grid-template-columns:1fr; } .cards { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  @media (max-width:640px) { .cards { grid-template-columns:1fr; } .wrap { padding:14px; } .hide-sm { display:none; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PR</div>
+  <div><h1>PlanRadar Form Builder – Test Dashboard</h1><div class="sub" id="target">Loading…</div></div>
+  <div class="right">
+    <span id="build">Build: …</span>
+    <button class="ghost small" id="rebuild" title="Recompile the code snapshot used for new runs">Rebuild</button>
+    <a href="/api/build/log" target="_blank" rel="noopener">Build log</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="cards">
+    <div class="card"><h2>Last run</h2><div id="cLast" class="stat">–</div><div id="cLastSub" class="hint"></div></div>
+    <div class="card"><h2>Pass rate · recent runs</h2><div id="cRate" class="stat">–</div><div id="cRateSub" class="hint"></div></div>
+    <div class="card"><h2>Runs</h2><div id="cRuns" class="stat">–</div><div id="cRunsSub" class="hint"></div></div>
+    <div class="card"><h2>Trend · last 20 runs</h2><div id="trend" class="trend"></div><div class="hint">green passed · red failed · amber blocked</div></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>New run</h2>
+      <label>Run mode</label>
+      <div class="seg" id="mode">
+        <button type="button" data-v="fast">Fast</button><button type="button" data-v="normal" class="on">Normal</button><button type="button" data-v="demo">Demo</button>
+      </div>
+      <div class="hint" id="modeHint"></div>
+      <div class="demo" id="demoBox" hidden>
+        <label for="delay">Pause after each action (ms)</label>
+        <input type="number" id="delay" min="0" max="5000" step="100" value="800">
+        <label class="check"><input type="checkbox" id="highlight" checked> Highlight the element being used</label>
+      </div>
+
+      <label for="browser">Browser</label>
+      <select id="browser"><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="firefox">Firefox</option></select>
+
+      <label for="headless">Window</label>
+      <select id="headless">
+        <option value="auto">Decided by the run mode</option><option value="true">Force headless</option><option value="false">Force visible</option>
+      </select>
+
+      <label>Scope</label>
+      <div class="seg" id="scope">
+        <button type="button" data-v="suite" class="on">Full suite</button><button type="button" data-v="class">Test class</button><button type="button" data-v="method">Single test</button>
+      </div>
+      <div id="classBox" hidden><label for="cls">Test class</label><select id="cls"></select></div>
+      <div id="methodBox" hidden><label for="method">Test</label><select id="method"></select></div>
+      <div class="hint" id="scopeHint"></div>
+
+      <button class="primary" id="start">Start run</button>
+      <div class="note" id="creds"></div>
+    </section>
+
+    <section class="card" id="runCard">
+      <div id="runEmpty" class="empty">No run selected. Start a run or pick one from the history.</div>
+      <div id="runView" hidden>
+        <div class="runhead">
+          <span class="title" id="rTitle"></span><span id="rStatus" class="badge"></span>
+          <div class="actions"><button class="danger" id="stop" hidden>Stop</button></div>
+        </div>
+        <div class="meta" id="rMeta"></div>
+        <div class="hint" id="rMessage"></div>
+        <div class="bar" id="rBar"></div>
+        <table><thead><tr><th style="width:80px">Test</th><th>Title</th><th class="hide-sm">Class</th><th style="width:110px">Status</th><th class="num" style="width:80px">Time</th></tr></thead>
+          <tbody id="rTests"></tbody></table>
+        <div id="rFailures"></div>
+        <div class="links" id="rLinks"></div>
+        <div class="logbar"><b>Live log</b><span id="logSize"></span><label class="check"><input type="checkbox" id="follow" checked> Auto-scroll</label></div>
+        <pre class="log" id="log"></pre>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:20px">
+    <h2>History</h2>
+    <div class="history"><table>
+      <thead><tr><th>Started</th><th>Status</th><th>Mode</th><th>Scope</th><th class="hide-sm">Browser</th><th class="num">Pass</th><th class="num">Fail</th><th class="num">Blocked</th><th class="num">Duration</th><th class="hide-sm">Run id</th><th>Reports</th><th></th></tr></thead>
+      <tbody id="history"></tbody>
+    </table></div>
+  </section>
+</div>
+
+<dialog id="dlg"><header style="background:var(--brand);color:#fff;display:flex;align-items:center"><h3 id="dlgTitle"></h3>
+  <button class="ghost small" style="margin-left:auto" id="dlgClose">Close</button></header><div class="body" id="dlgBody"></div></dialog>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const MODE_HINTS = {
+  fast: "Headless browser, no pauses. Same waits and assertions – for CI and quick regression.",
+  normal: "Visible browser at 1920×1080, no pauses. The reference configuration.",
+  demo: "Visible, maximized browser; each click/type/select is highlighted and followed by a pause, for an audience.",
+};
+const state = { catalog:null, runs:[], selected:null, offset:0, detailFor:null, mode:"normal", scope:"suite", logTimer:null };
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function toast(text, error) {
+  const t = $("toast"); t.textContent = text; t.className = error ? "err" : ""; t.style.display = "block";
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.style.display = "none", error ? 7000 : 3500);
+}
+async function api(path, body) {
+  const options = body === undefined ? {} : { method:"POST", headers:{"Content-Type":"application/json","X-Dashboard":"1"}, body:JSON.stringify(body) };
+  const response = await fetch(path, options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || response.statusText);
+  return data;
+}
+function fmtDuration(sec) {
+  if (sec == null) return "–";
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s`;
+}
+function fmtDate(iso) {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, {month:"short", day:"numeric"}) + " " + d.toLocaleTimeString(undefined, {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+}
+const badge = status => `<span class="badge b-${esc(String(status).split(" ")[0])}">${esc(status)}</span>`;
+const active = run => ["queued", "running", "stopping"].includes(run.status);
+const runUrl = (run, path) => `/runs/${encodeURIComponent(run.id)}/${path.split("/").map(encodeURIComponent).join("/")}`;
+
+// ---------------------------------------------------------------- form
+function segmented(id, key, onChange) {
+  $(id).addEventListener("click", event => {
+    const button = event.target.closest("button[data-v]");
+    if (!button) return;
+    for (const b of $(id).children) b.classList.toggle("on", b === button);
+    state[key] = button.dataset.v;
+    onChange();
+  });
+}
+function refreshForm() {
+  $("modeHint").textContent = MODE_HINTS[state.mode];
+  $("demoBox").hidden = state.mode !== "demo";
+  $("classBox").hidden = state.scope === "suite";
+  $("methodBox").hidden = state.scope !== "method";
+  const cls = state.catalog?.classes.find(c => c.class === $("cls").value);
+  if (state.scope === "suite") {
+    const count = state.catalog ? state.catalog.classes.reduce((n, c) => n + c.methods.length, 0) : 0;
+    $("scopeHint").textContent = `${count} tests in suite order (suites/planradar.xml).`;
+  } else if (state.scope === "class" && cls) {
+    $("scopeHint").textContent = `${cls.methods.length} tests: ${cls.methods.map(m => m.id).join(", ")}`;
+  } else {
+    $("scopeHint").textContent = "Each test logs in with a fresh browser, so a single test can run on its own.";
+  }
+}
+function fillMethods() {
+  const cls = state.catalog.classes.find(c => c.class === $("cls").value);
+  $("method").innerHTML = (cls?.methods || []).map(m => `<option value="${esc(m.name)}">${esc(m.id)} – ${esc(m.title)}</option>`).join("");
+  refreshForm();
+}
+async function loadCatalog() {
+  const cat = await api("/api/catalog");
+  state.catalog = cat;
+  $("target").textContent = `${cat.systemTitle} · ${cat.url}`;
+  $("cls").innerHTML = cat.classes.map(c => `<option value="${esc(c.class)}">${esc(c.simple)}${c.feature ? " – " + esc(c.feature) : ""} (${c.methods.length})</option>`).join("");
+  fillMethods();
+  const creds = $("creds");
+  creds.className = cat.credentials ? "note" : "note warn";
+  creds.textContent = cat.credentials
+    ? `Credentials are resolved by the framework from ${cat.credentials}; the dashboard never reads, shows or stores them.`
+    : "No admin credentials found (environment variables or config/credentials.local.properties). Runs will be BLOCKED at login.";
+}
+async function startRun() {
+  const payload = { mode:state.mode, browser:$("browser").value, headless:$("headless").value, scope:state.scope };
+  if (state.scope !== "suite") payload.class = $("cls").value;
+  if (state.scope === "method") payload.method = $("method").value;
+  if (state.mode === "demo") { payload.demoDelayMs = Number.parseInt($("delay").value, 10); payload.demoHighlight = $("highlight").checked; }
+  $("start").disabled = true;
+  try {
+    const run = await api("/api/runs", payload);
+    toast(`Run ${run.id} queued`);
+    await refreshRuns();
+    select(run.id);
+  } catch (error) { toast(error.message, true); }
+  finally { $("start").disabled = false; refreshStart(); }
+}
+function refreshStart() {
+  const busy = state.runs.find(active);
+  $("start").disabled = !!busy;
+  $("start").textContent = busy ? `Run ${busy.status}… (one at a time)` : "Start run";
+}
+
+// ---------------------------------------------------------------- overview + history
+function renderOverview() {
+  const done = state.runs.filter(r => r.counts && !active(r));
+  const last = state.runs.find(r => !active(r));
+  if (last) {
+    $("cLast").innerHTML = badge(last.status);
+    $("cLastSub").textContent = `${last.counts ? `${last.counts.passed}/${last.counts.total} passed · ` : ""}${last.mode} · ${last.scopeLabel} · ${fmtDate(last.started || last.created)}`;
+  } else { $("cLast").textContent = "–"; $("cLastSub").textContent = "No finished runs yet"; }
+  const recent = done.slice(0, 10);
+  const passed = recent.reduce((n, r) => n + r.counts.passed, 0), total = recent.reduce((n, r) => n + r.counts.total, 0);
+  $("cRate").innerHTML = total ? `${Math.round(100 * passed / total)}<small>%</small>` : "–";
+  $("cRateSub").textContent = total ? `${passed} of ${total} tests passed in the last ${recent.length} run(s)` : "Shown after the first completed run";
+  const durations = done.map(r => r.durationSec).filter(Boolean);
+  $("cRuns").innerHTML = `${state.runs.length}<small> total</small>`;
+  $("cRunsSub").textContent = `${state.runs.filter(r => r.status === "passed").length} passed · ${state.runs.filter(r => ["failed","error"].includes(r.status)).length} failed · `
+    + (durations.length ? `avg ${fmtDuration(Math.round(durations.reduce((a, b) => a + b, 0) / durations.length))}` : "no durations yet");
+  $("trend").innerHTML = done.slice(0, 20).reverse().map(r => {
+    const c = r.counts, t = Math.max(1, c.total), pct = n => (100 * n / t).toFixed(1) + "%";
+    return `<a href="#" data-id="${esc(r.id)}" title="${esc(`${fmtDate(r.started)} · ${r.status} · ${c.passed}/${c.total} passed · ${r.mode}`)}">`
+      + `<span style="height:${pct(c.passed)};background:var(--pass)"></span><span style="height:${pct(c.failed)};background:var(--fail)"></span>`
+      + `<span style="height:${pct(c.blocked + c.skipped)};background:var(--block)"></span></a>`;
+  }).join("") || `<span class="muted">No data yet</span>`;
+}
+function renderHistory() {
+  $("history").innerHTML = state.runs.map(r => {
+    const c = r.counts || {};
+    const reports = [r.allureReport ? `<a href="${runUrl(r, r.allureReport)}" target="_blank" rel="noopener">Allure</a>` : "",
+      r.summary ? `<a href="#" data-summary="${esc(r.id)}">Summary</a>` : "",
+      r.screenshots ? `<a href="#" data-gallery="${esc(r.id)}">Screenshots (${r.screenshots})</a>` : "",
+      `<a href="${runUrl(r, "console.log")}" target="_blank" rel="noopener">Log</a>`].filter(Boolean).join(" · ");
+    return `<tr class="click${r.id === state.selected ? " sel" : ""}" data-id="${esc(r.id)}">
+      <td>${esc(fmtDate(r.started || r.created))}</td><td>${badge(r.status)}</td><td>${esc(r.mode)}</td><td>${esc(r.scopeLabel)}</td>
+      <td class="hide-sm">${esc(r.browser)}${r.headless !== "auto" ? (r.headless === "true" ? " (headless)" : " (visible)") : ""}</td>
+      <td class="num">${c.passed ?? "–"}</td><td class="num">${c.failed ?? "–"}</td><td class="num">${c.blocked ?? "–"}</td>
+      <td class="num">${fmtDuration(r.durationSec)}</td><td class="hide-sm mono">${esc(r.id)}</td><td>${reports}</td>
+      <td>${active(r) ? "" : `<button class="danger small" data-delete="${esc(r.id)}">Delete</button>`}</td></tr>`;
+  }).join("") || `<tr><td colspan="12" class="empty">No runs yet.</td></tr>`;
+}
+async function refreshRuns() {
+  state.runs = (await api("/api/runs")).runs;
+  renderOverview(); renderHistory(); refreshStart();
+  if (!state.selected && state.runs.length) select((state.runs.find(active) || state.runs[0]).id);
+}
+
+// ---------------------------------------------------------------- run view
+function select(id) {
+  if (state.selected !== id) {
+    state.selected = id; state.offset = 0; state.detailFor = null;
+    $("log").textContent = ""; $("rFailures").innerHTML = ""; $("rLinks").innerHTML = "";
+  }
+  $("runEmpty").hidden = true; $("runView").hidden = false;
+  renderHistory();
+  pollLog();
+}
+function renderRun(run, tests) {
+  $("rTitle").textContent = `${run.scopeLabel} · ${run.mode}`;
+  $("rStatus").outerHTML = `<span id="rStatus" class="badge b-${esc(run.status)}">${esc(run.status)}</span>`;
+  $("stop").hidden = !["running", "queued"].includes(run.status);
+  const demo = run.demo ? ` (${run.demo.delayMs} ms pause, highlight ${run.demo.highlight ? "on" : "off"})` : "";
+  $("rMeta").innerHTML = [["Run", run.id], ["Framework run id", run.frameworkRunId || "–"], ["Mode", run.mode + demo],
+    ["Browser", run.browser + (run.headless === "auto" ? "" : run.headless === "true" ? ", headless" : ", visible")],
+    ["Started", fmtDate(run.started)], ["Elapsed", fmtDuration(run.durationSec)]]
+    .map(([k, v]) => `<span>${esc(k)} <b>${esc(v)}</b></span>`).join("");
+  $("rMessage").textContent = run.message || "";
+  const count = s => tests.filter(t => t.status === s).length, total = Math.max(1, tests.length);
+  $("rBar").innerHTML = [["passed","var(--pass)"],["failed","var(--fail)"],["blocked","var(--block)"],["skipped","var(--skip)"],["running","var(--run)"]]
+    .map(([s, color]) => `<span style="width:${100 * count(s) / total}%;background:${color}" title="${s}: ${count(s)}"></span>`).join("");
+  $("rTests").innerHTML = tests.map(t => `<tr><td class="tc">${esc(t.id)}</td><td>${esc(t.title)}</td><td class="hide-sm muted">${esc(t.class)}</td>
+    <td>${badge(t.status)}</td><td class="num">${t.durationMs != null ? fmtDuration(Math.round(t.durationMs / 1000)) : ""}</td></tr>`).join("");
+}
+function appendLog(text) {
+  if (!text) return;
+  const log = $("log"), fragment = document.createDocumentFragment();
+  for (const line of text.split(/(?<=\n)/)) {
+    const span = document.createElement("span");
+    if (/\[ERROR\]|FAILED|Exception/.test(line)) span.className = "e";
+    else if (/ PASSED\b|BUILD SUCCESS/.test(line)) span.className = "p";
+    else if (/\[WARN\]|BLOCKED/.test(line)) span.className = "w";
+    span.textContent = line;
+    fragment.appendChild(span);
+  }
+  log.appendChild(fragment);
+  if ($("follow").checked) log.scrollTop = log.scrollHeight;
+}
+async function pollLog() {
+  clearTimeout(state.logTimer);
+  const id = state.selected;
+  if (!id) return;
+  try {
+    const data = await api(`/api/runs/${encodeURIComponent(id)}/log?offset=${state.offset}`);
+    if (id !== state.selected) return;
+    state.offset = data.offset;
+    appendLog(data.text);
+    $("logSize").textContent = `${(state.offset / 1024).toFixed(1)} KB`;
+    renderRun(data.run, data.tests);
+    if (active(data.run)) { state.logTimer = setTimeout(pollLog, 1000); return; }
+    if (data.text.length >= 256000) { state.logTimer = setTimeout(pollLog, 50); return; }
+    if (state.detailFor !== id) { state.detailFor = id; renderDetail(await api(`/api/runs/${encodeURIComponent(id)}`)); }
+  } catch (error) {
+    if (/Unknown run/.test(error.message)) { state.selected = null; $("runView").hidden = true; $("runEmpty").hidden = false; return; }
+    state.logTimer = setTimeout(pollLog, 3000);
+  }
+}
+function renderDetail(run) {
+  renderRun(run, run.tests);
+  $("rFailures").innerHTML = run.failures.map(f => `<div class="failure${f.status === "SKIP" ? " blocked" : ""}">
+    <b>${esc((f.description || f.method).split(" — ")[0])}</b> ${f.config ? "(setup/teardown)" : ""} <span class="muted">${esc(f.method)}</span>
+    <pre>${esc(f.message || f.exception)}</pre></div>`).join("")
+    + run.preflight.filter(p => p.ok === false).map(p => `<div class="failure"><b>Preflight: ${esc(p.label)}</b><pre>${esc(p.url)} – ${esc(p.detail || p.status)}</pre></div>`).join("");
+  $("rLinks").innerHTML = [
+    run.allureReport ? `<a href="${runUrl(run, run.allureReport)}" target="_blank" rel="noopener">Allure report</a>` : "",
+    run.summary ? `<button data-summary="${esc(run.id)}">Execution summary</button>` : "",
+    run.screenshots.length ? `<button data-gallery="${esc(run.id)}">Screenshots (${run.screenshots.length})</button>` : "",
+    `<a href="${runUrl(run, "console.log")}" target="_blank" rel="noopener">Raw log</a>`,
+    `<a href="${runUrl(run, "suite.xml")}" target="_blank" rel="noopener">Suite XML</a>`,
+  ].join("");
+}
+async function stopRun() {
+  if (!confirm("Stop this run? The Java process, driver and browser are killed.")) return;
+  try { await api(`/api/runs/${encodeURIComponent(state.selected)}/stop`, {}); toast("Stopping…"); refreshRuns(); }
+  catch (error) { toast(error.message, true); }
+}
+async function deleteRun(id) {
+  if (!confirm(`Delete run ${id} and all its files?`)) return;
+  try {
+    await api(`/api/runs/${encodeURIComponent(id)}/delete`, {});
+    if (state.selected === id) { state.selected = null; $("runView").hidden = true; $("runEmpty").hidden = false; }
+    toast(`Run ${id} deleted`); refreshRuns();
+  } catch (error) { toast(error.message, true); }
+}
+
+// ---------------------------------------------------------------- dialogs
+function inline(text) {
+  return esc(text).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+function markdown(source) {
+  const out = [], lines = source.replace(/\r/g, "").split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*\|/.test(line)) {
+      const rows = [];
+      while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
+      i--;
+      const cells = row => row.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const body = rows.filter((r, n) => !(n === 1 && /^[\s|:-]+$/.test(r)));
+      out.push("<table><thead><tr>" + cells(body[0]).map(c => `<th>${inline(c)}</th>`).join("") + "</tr></thead><tbody>"
+        + body.slice(1).map(r => "<tr>" + cells(r).map(c => `<td>${inline(c)}</td>`).join("") + "</tr>").join("") + "</tbody></table>");
+    } else if (/^#{1,4} /.test(line)) {
+      const level = line.match(/^#+/)[0].length;
+      out.push(`<h${level}>${inline(line.slice(level + 1))}</h${level}>`);
+    } else if (/^\s*[-*] /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*[-*] /.test(lines[i])) items.push(lines[i++].replace(/^\s*[-*] /, ""));
+      i--;
+      out.push("<ul>" + items.map(item => `<li>${inline(item)}</li>`).join("") + "</ul>");
+    } else if (line.trim()) out.push(`<p>${inline(line)}</p>`);
+  }
+  return out.join("\n");
+}
+function openDialog(title, html) {
+  $("dlgTitle").textContent = title; $("dlgBody").innerHTML = html; $("dlg").showModal();
+}
+async function showSummary(id) {
+  const run = await api(`/api/runs/${encodeURIComponent(id)}`);
+  const text = await (await fetch(runUrl(run, run.summary))).text();
+  openDialog(`Execution summary · ${run.id}`, `<div class="md">${markdown(text)}</div>`);
+}
+async function showGallery(id) {
+  const run = await api(`/api/runs/${encodeURIComponent(id)}`);
+  openDialog(`Screenshots · ${run.id} (${run.screenshots.length})`, `<div class="gallery">${run.screenshots.map(path =>
+    `<a href="${runUrl(run, path)}" target="_blank" rel="noopener"><img loading="lazy" src="${runUrl(run, path)}" alt=""><span>${esc(path.split("/").pop())}</span></a>`).join("")}</div>`);
+}
+
+// ---------------------------------------------------------------- build
+async function refreshBuild() {
+  const build = await api("/api/build");
+  const text = build.status === "building" ? "compiling snapshot…" : build.status === "failed" ? "FAILED – see build log"
+    : build.stale ? "sources changed – compiled on next run" : build.status === "ready" ? `ready (${build.snapshot})` : "not built";
+  $("build").textContent = "Build: " + text;
+  $("build").style.color = build.status === "failed" ? "#ffb4b4" : "";
+}
+
+// ---------------------------------------------------------------- wiring
+document.addEventListener("click", event => {
+  const target = event.target;
+  const el = attr => target.closest(`[${attr}]`);
+  if (el("data-delete")) { event.stopPropagation(); return deleteRun(el("data-delete").dataset.delete); }
+  if (el("data-summary")) { event.preventDefault(); event.stopPropagation(); return showSummary(el("data-summary").dataset.summary).catch(e => toast(e.message, true)); }
+  if (el("data-gallery")) { event.preventDefault(); event.stopPropagation(); return showGallery(el("data-gallery").dataset.gallery).catch(e => toast(e.message, true)); }
+  if (target.closest("a[href^='/runs/']")) return;
+  const row = target.closest("tr[data-id], .trend a[data-id]");
+  if (row) { event.preventDefault(); select(row.dataset.id); $("runCard").scrollIntoView({behavior:"smooth", block:"start"}); }
+});
+segmented("mode", "mode", refreshForm);
+segmented("scope", "scope", refreshForm);
+$("cls").addEventListener("change", fillMethods);
+$("start").addEventListener("click", startRun);
+$("stop").addEventListener("click", stopRun);
+$("dlgClose").addEventListener("click", () => $("dlg").close());
+$("rebuild").addEventListener("click", () => api("/api/build", {}).then(refreshBuild).catch(e => toast(e.message, true)));
+$("log").addEventListener("scroll", () => {
+  const log = $("log");
+  $("follow").checked = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+});
+
+(async function init() {
+  refreshForm();
+  try { await loadCatalog(); } catch (error) { toast("Catalog: " + error.message, true); }
+  const tick = async () => {
+    try { await Promise.all([refreshRuns(), refreshBuild()]); } catch (error) { /* server restarting */ }
+    setTimeout(tick, state.runs.some(active) ? 2000 : 5000);
+  };
+  tick();
+})();
+</script>
+</body>
+</html>
